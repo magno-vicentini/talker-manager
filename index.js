@@ -9,6 +9,7 @@ app.use(bodyParser.json());
 
 const HTTP_OK_STATUS = 200;
 const PORT = '3000';
+const talkerJsonPath = './talker.json';
 
 const {
   validateEmail,
@@ -72,6 +73,31 @@ app.post(
     );
 
     res.status(201).json({ name, id: 5, age, talk });
+  },
+);
+
+app.put(
+  '/talker/:id',
+  validateToken, validateName, validateAge, validateTalk,
+  validateTalkDateType, validateTalkRate,
+  async (req, res) => {
+    const { id } = req.params;
+    const { name, age, talk } = req.body;
+    const allTalkers = await getTalkers();
+    const talkerIndex = await fs
+      .readFile(talkerJsonPath, 'utf8')
+      .then((response) =>
+        JSON.parse(response).findIndex((r) => Number(r.id) === Number(id)));
+    
+    if (talkerIndex === -1) { return res.status(404).json({ message: 'Talker not found!' }); }
+    await fs.writeFile(
+      talkerJsonPath,
+      JSON.stringify([
+        ...allTalkers, (allTalkers[talkerIndex] = {
+          ...allTalkers[talkerIndex], name, age, talk }),
+      ]),
+    );
+    res.status(200).send({ name, age, id: Number(id), talk });
   },
 );
 
