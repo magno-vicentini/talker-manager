@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
 
+const fs = require('fs/promises');
+
 const app = express();
 app.use(bodyParser.json());
 
@@ -9,9 +11,15 @@ const HTTP_OK_STATUS = 200;
 const PORT = '3000';
 
 const {
-  getTalkers,
   validateEmail,
   validatePassword,
+  validateToken,
+  validateName,
+  validateAge,
+  validateTalkDateType,
+  validateTalkRate,
+  validateTalk,
+  getTalkers,
 } = require('./validations');
 
 // não remova esse endpoint, e para o avaliador funcionar
@@ -45,6 +53,27 @@ app.post('/login', validateEmail, validatePassword, (req, res) => {
 
   res.status(200).json({ token: `${token}` });
 });
+
+app.post(
+  '/talker',
+  validateToken,
+  validateName,
+  validateAge,
+  validateTalk,
+  validateTalkDateType,
+  validateTalkRate,
+  async (req, res) => {
+    const { name, age, talk } = req.body;
+    const allTalkers = await getTalkers();
+
+    await fs.writeFile(
+      talkerJsonPath,
+      JSON.stringify([...allTalkers, { name, id: 5, age, talk }]),
+    );
+
+    res.status(201).json({ name, id: 5, age, talk });
+  },
+);
 
 app.listen(PORT, () => {
   console.log('Online');
