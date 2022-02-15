@@ -101,6 +101,21 @@ app.put(
   },
 );
 
+app.delete('/talker/:id', validateToken, async (req, res) => {
+  const { id } = req.params;
+  const allTalkers = await getTalkers();
+
+  const talkerIndex = await fs
+    .readFile(talkerJsonPath, 'utf8')
+    .then((response) =>
+      JSON.parse(response).findIndex((r) => Number(r.id) === Number(id)));
+  await fs.writeFile(
+    talkerJsonPath,
+    JSON.stringify([allTalkers.splice(talkerIndex, 1)]),
+  );
+  res.status(204).end();
+});
+
 app.listen(PORT, () => {
   console.log('Online');
 });
