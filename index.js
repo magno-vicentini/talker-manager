@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const crypto = require('crypto');
 
 const app = express();
 app.use(bodyParser.json());
@@ -9,6 +10,8 @@ const PORT = '3000';
 
 const {
   getTalkers,
+  validateEmail,
+  validatePassword,
 } = require('./validations');
 
 // não remova esse endpoint, e para o avaliador funcionar
@@ -35,6 +38,12 @@ app.get('/talker/:id', async (req, res) => {
       .json({ message: 'Pessoa palestrante não encontrada' });
   }
   res.status(200).send(filterId);
+});
+
+app.post('/login', validateEmail, validatePassword, (req, res) => {
+  const token = crypto.randomBytes(8).toString('hex');
+
+  res.status(200).json({ token: `${token}` });
 });
 
 app.listen(PORT, () => {
